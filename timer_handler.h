@@ -11,6 +11,8 @@
 #define TIMER_HANDLER_H_
 
 // Public functions
-void timer0_init();
+uint32_t timer0_init();
+void duty_cycle(uint32_t val_red, uint32_t val_green, uint32_t val_blue);
+void leds_gpio_init();
 
 #endif // TIMER_HANDLER_H_ */

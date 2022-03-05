@@ -45,16 +45,67 @@
 INCBIN(Header, "header.bin");
 
 // Heartbeat thread, initialize Timer and print heartbeat messages.
+void leds_loop();
 void hp_loop ()
 {
     #define ESWGPIO_HB_DELAY 10 // Heartbeat message delay, seconds
-    
+    uint32_t timer_freq;
     // TODO Initialize Timer.
+    timer_freq = timer0_init();
+    leds_gpio_init();
+
+    // Create a thread for buzzer.
+    const osThreadAttr_t leds_thread_attr = { .name = "led" };
+    osThreadNew(leds_loop, NULL, &leds_thread_attr);
     
     for (;;)
     {
         osDelay(ESWGPIO_HB_DELAY*osKernelGetTickFreq());
         info1("Heartbeat");
+    }
+}
+void denek()
+{
+    for(uint32_t i=0; i<20; ++i)
+    {
+        duty_cycle(i*2, i*5, i);
+        osDelay(20*osKernelGetTickFreq()/1000);
+    }
+    osDelay(50*osKernelGetTickFreq()/1000);
+    for(uint32_t i=20; i>0; i--)
+    {
+        duty_cycle(i*2, i*5, i);
+        osDelay(20*osKernelGetTickFreq()/1000);
+    }
+    duty_cycle(0, 0, 0);
+    osDelay(50*osKernelGetTickFreq()/1000);
+}
+void leds_loop(void *args)
+{
+    #define DUTY_CYCLE_DELAY 50 // ms
+    
+    for (;;)
+    {
+        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
+        // duty_cycle(50);
+        // info1("dc 50");
+        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
+        // duty_cycle(25);
+        // info1("dc 25");
+        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
+        // duty_cycle(0);
+        // info1("dc 0");
+        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
+        // duty_cycle(75);
+        // info1("dc 75");
+        // duty_cycle(40, 100, 20);
+        // duty_cycle(0, 0, 0);
+        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
+        // duty_cycle(40, 100, 20);
+        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
+        denek();
+
+
     }
 }
 
