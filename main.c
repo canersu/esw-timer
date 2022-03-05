@@ -50,11 +50,12 @@ void hp_loop ()
 {
     #define ESWGPIO_HB_DELAY 10 // Heartbeat message delay, seconds
     uint32_t timer_freq;
-    // TODO Initialize Timer.
+    // Initialize Timer.
     timer_freq = timer0_init();
+    // Initialize LEDs
     leds_gpio_init();
 
-    // Create a thread for buzzer.
+    // Create a thread for LEDs.
     const osThreadAttr_t leds_thread_attr = { .name = "led" };
     osThreadNew(leds_loop, NULL, &leds_thread_attr);
     
@@ -64,48 +65,37 @@ void hp_loop ()
         info1("Heartbeat");
     }
 }
-void denek()
-{
-    for(uint32_t i=0; i<20; ++i)
-    {
-        duty_cycle(i*2, i*5, i);
-        osDelay(20*osKernelGetTickFreq()/1000);
-    }
-    osDelay(50*osKernelGetTickFreq()/1000);
-    for(uint32_t i=20; i>0; i--)
-    {
-        duty_cycle(i*2, i*5, i);
-        osDelay(20*osKernelGetTickFreq()/1000);
-    }
-    duty_cycle(0, 0, 0);
-    osDelay(50*osKernelGetTickFreq()/1000);
-}
+
+// Responsible for dimming LEDs fade in/out. 
+// Red -> 40 Green -> 100 Blue -> 20 seems the equal brightness
+// To obtain that values, a loop created and increased/decreased
+// from 0-20 and 20-0 by multipliers with 2 for Red, 5 for Green
+// and 1 for Blue. FADE_DELAY sets the time period for fade in/out
+// and SLEEP_DELAY keeps the max/min brightness between fade in/out
 void leds_loop(void *args)
 {
-    #define DUTY_CYCLE_DELAY 50 // ms
-    
+    #define FADE_DELAY 20 // ms
+    #define SLEEP_DELAY 50 // ms
+
+    uint32_t i;
+
     for (;;)
     {
-        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
-        // duty_cycle(50);
-        // info1("dc 50");
-        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
-        // duty_cycle(25);
-        // info1("dc 25");
-        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
-        // duty_cycle(0);
-        // info1("dc 0");
-        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
-        // duty_cycle(75);
-        // info1("dc 75");
-        // duty_cycle(40, 100, 20);
-        // duty_cycle(0, 0, 0);
-        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
-        // duty_cycle(40, 100, 20);
-        // osDelay(DUTY_CYCLE_DELAY*osKernelGetTickFreq()/1000);
-        denek();
+        for(i=0; i<20; ++i)
+        {
+            duty_cycle(i*2, i*5, i);
+            osDelay(FADE_DELAY*osKernelGetTickFreq()/1000);
+        }
 
+        osDelay(SLEEP_DELAY*osKernelGetTickFreq()/1000);
+        for(i=20; i>0; i--)
+        {
+            duty_cycle(i*2, i*5, i);
+            osDelay(FADE_DELAY*osKernelGetTickFreq()/1000);
+        }
 
+        duty_cycle(0, 0, 0);
+        osDelay(SLEEP_DELAY*osKernelGetTickFreq()/1000);
     }
 }
 
